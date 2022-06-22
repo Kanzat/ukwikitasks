@@ -18,6 +18,20 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>central</id>
+            <url>https://repo1.maven.org/maven2</url>
+        </repository>
+        <repository>
+            <id>kanzat</id>
+            <url>https://maven.pkg.github.com/Kanzat/jwiki</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
@@ -48,9 +62,9 @@
 <!--            <version>1.8.0</version>-->
 <!--        </dependency>-->
         <dependency>
-            <groupId>org.wikipedia.kanzatbot</groupId>
-            <artifactId>jwiki-patched</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <groupId>org.kanzat</groupId>
+            <artifactId>jwiki</artifactId>
+            <version>1.8.1</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
         <dependency>
