@@ -38,7 +38,7 @@ jobs:
       with:
         host: login.toolforge.org
         user: Kanzat
-        pass: ${{ secrets.DC_PASS }}
+        key: ${{ secrets.DC_PASS }}
         connect_timeout: 10s
         first_ssh: |
           become kanzattool1
