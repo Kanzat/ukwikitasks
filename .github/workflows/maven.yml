@@ -33,3 +33,19 @@ jobs:
         arguments: publishToMavenLocal
     - name: Build with Maven
       run: mvn -B package --file pom.xml
+    - name: SSH-SCP-SSH to ToolForge
+      uses: cross-the-world/ssh-scp-ssh-pipelines@latest
+      with:
+        host: login.toolforge.org
+        user: Kanzat
+        pass: ${{ secrets.DC_PASS }}
+        connect_timeout: 10s
+        first_ssh: |
+          become kanzattool1
+          toolforge-jobs delete mycronjob
+          rm wikipedia-need-attention-pages4-1.0-SNAPSHOT-jar-with-dependencies.jar
+        scp: |
+          './target/*-with-dependencies.jar' => /data/project/kanzattool1/
+        last_ssh: |
+          echo '/usr/bin/java -jar /data/project/kanzattool1/wikipedia-need-attention-pages4-1.0-SNAPSHOT-jar-with-dependencies.jar "/data/project/kanzattool1/credentials.properties"' > startcmd.sh
+          toolforge-jobs run mycronjob --command ./startcmd.sh --image jdk17 --email all --schedule "0 4 * * *"
