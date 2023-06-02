@@ -21,6 +21,7 @@ jobs:
         host: login.toolforge.org
         user: Kanzat
         key: ${{ secrets.DC_PASS }}
+        pass: ''
         connect_timeout: 10s
         first_ssh: echo Hello1!
         last_ssh: echo Hello2!
