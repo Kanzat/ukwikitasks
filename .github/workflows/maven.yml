@@ -40,13 +40,9 @@ jobs:
         user: kanzat
         key: ${{ secrets.DC_PASS }}
         connect_timeout: 10s
-        first_ssh: |
-           become kanzattool1
-           exit
-#           toolforge-jobs delete mycronjob
-#           rm wikipedia-need-attention-pages4-1.0-SNAPSHOT-jar-with-dependencies.jar
+        first_ssh: become kanzattool1 bash -c 'toolforge-jobs delete mycronjob; rm wikipedia-need-attention-pages4-1.0-SNAPSHOT-jar-with-dependencies.jar'
         scp: |
           './target/*-with-dependencies.jar' => /data/project/kanzattool1/
-        last_ssh: |
-           echo '/usr/bin/java -jar /data/project/kanzattool1/wikipedia-need-attention-pages4-1.0-SNAPSHOT-jar-with-dependencies.jar "/data/project/kanzattool1/credentials.properties"' > startcmd.sh
-           toolforge-jobs run mycronjob --command ./startcmd.sh --image jdk17 --email all --schedule "0 4 * * *"
+#        last_ssh: |
+#           become kanzattool1 bash -c echo '/usr/bin/java -jar /data/project/kanzattool1/wikipedia-need-attention-pages4-1.0-SNAPSHOT-jar-with-dependencies.jar "/data/project/kanzattool1/credentials.properties"' > startcmd.sh
+#           toolforge-jobs run mycronjob --command ./startcmd.sh --image jdk17 --email all --schedule "0 4 * * *"
