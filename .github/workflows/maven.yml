@@ -16,7 +16,7 @@ jobs:
 
     steps:
     - name: test SSH-SCP-SSH to ToolForge
-      uses: cross-the-world/ssh-scp-ssh-pipelines@1.1.4
+      uses: cross-the-world/ssh-scp-ssh-pipelines@v1.1.4
       with:
         host: login.toolforge.org
         user: Kanzat
