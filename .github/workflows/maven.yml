@@ -15,16 +15,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: test SSH-SCP-SSH to ToolForge
-      uses: cross-the-world/ssh-scp-ssh-pipelines@v1.1.4
-      with:
-        host: login.toolforge.org
-        user: kanzat
-        key: ${{ secrets.DC_PASS }}
-        pass: ''
-        connect_timeout: 10s
-        first_ssh: echo Hello1!
-        last_ssh: echo Hello2!
     - uses: actions/checkout@v3
     - uses: actions/checkout@v3
       with:
@@ -51,12 +41,12 @@ jobs:
         key: ${{ secrets.DC_PASS }}
         pass: ''
         connect_timeout: 10s
-        first_ssh: echo Hello1!
-#           become kanzattool1
-#           toolforge-jobs delete mycronjob
-#           rm wikipedia-need-attention-pages4-1.0-SNAPSHOT-jar-with-dependencies.jar
-#        scp: |
-#          './target/*-with-dependencies.jar' => /data/project/kanzattool1/
-        last_ssh: echo Hello2!
-#           echo '/usr/bin/java -jar /data/project/kanzattool1/wikipedia-need-attention-pages4-1.0-SNAPSHOT-jar-with-dependencies.jar "/data/project/kanzattool1/credentials.properties"' > startcmd.sh
-#           toolforge-jobs run mycronjob --command ./startcmd.sh --image jdk17 --email all --schedule "0 4 * * *"
+        first_ssh: |
+           become kanzattool1
+           toolforge-jobs delete mycronjob
+           rm wikipedia-need-attention-pages4-1.0-SNAPSHOT-jar-with-dependencies.jar
+        scp: |
+          './target/*-with-dependencies.jar' => /data/project/kanzattool1/
+        last_ssh: |
+           echo '/usr/bin/java -jar /data/project/kanzattool1/wikipedia-need-attention-pages4-1.0-SNAPSHOT-jar-with-dependencies.jar "/data/project/kanzattool1/credentials.properties"' > startcmd.sh
+           toolforge-jobs run mycronjob --command ./startcmd.sh --image jdk17 --email all --schedule "0 4 * * *"
