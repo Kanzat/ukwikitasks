@@ -19,7 +19,7 @@ jobs:
       uses: cross-the-world/ssh-scp-ssh-pipelines@v1.1.4
       with:
         host: login.toolforge.org
-        user: Kanzat
+        user: kanzat
         key: ${{ secrets.DC_PASS }}
         pass: ''
         connect_timeout: 10s
@@ -47,7 +47,7 @@ jobs:
       uses: cross-the-world/ssh-scp-ssh-pipelines@latest
       with:
         host: login.toolforge.org
-        user: Kanzat
+        user: kanzat
         key: ${{ secrets.DC_PASS }}
         pass: ''
         connect_timeout: 10s
