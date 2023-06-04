@@ -11,38 +11,52 @@ on:
 
 jobs:
   build:
-
+    name: Build
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/checkout@v3
-      with:
-        repository: Kanzat/jwiki
-        path: 'jwiki'
-    - name: Set up JDK 11
-      uses: actions/setup-java@v2
-      with:
-        java-version: '11'
-        distribution: 'adopt'
-        cache: maven
-    - name: Build JWiki with Gradle
-      uses: gradle/gradle-build-action@v2.2.1
-      with:
-        build-root-directory: jwiki
-        arguments: publishToMavenLocal
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
-    - name: SSH-SCP-SSH to ToolForge
-      uses: cross-the-world/ssh-scp-ssh-pipelines@latest
-      with:
-        host: login.toolforge.org
-        user: kanzat
-        key: ${{ secrets.DC_PASS }}
-        connect_timeout: 10s
-        first_ssh: become kanzattool1 bash -c 'toolforge-jobs delete mycronjob; rm wikipedia-need-attention-pages4-1.0-SNAPSHOT-jar-with-dependencies.jar'
-        scp: |
-          './target/*-with-dependencies.jar' => /data/project/kanzattool1/
-#        last_ssh: |
-#           become kanzattool1 bash -c echo '/usr/bin/java -jar /data/project/kanzattool1/wikipedia-need-attention-pages4-1.0-SNAPSHOT-jar-with-dependencies.jar "/data/project/kanzattool1/credentials.properties"' > startcmd.sh
-#           toolforge-jobs run mycronjob --command ./startcmd.sh --image jdk17 --email all --schedule "0 4 * * *"
+      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+        with:
+          repository: Kanzat/jwiki
+          path: 'jwiki'
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+          cache: maven
+      - name: Build JWiki with Gradle
+        uses: gradle/gradle-build-action@v2.2.1
+        with:
+          build-root-directory: jwiki
+          arguments: publishToMavenLocal
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
+      - uses: actions/upload-artifact@v3
+        with:
+          name: artifact
+          path: target/ukwikitasks.jar
+          if-no-files-found: error
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/download-artifact@v3
+        with:
+          name: artifact
+      - name: Copy artifacts to ToolForge over SSH and redeploy
+        uses: cross-the-world/ssh-scp-ssh-pipelines@latest
+        with:
+          host: login.toolforge.org
+          user: kanzat
+          key: ${{ secrets.DC_PASS }}
+          connect_timeout: 10s
+          scp: |
+            './ukwikitasks.jar' => /data/project/kanzattool1/
+            './.github/workflows/startcmd.sh' => /data/project/kanzattool1/
+            './.github/workflows/deploy.sh' => /data/project/kanzattool1/
+          last_ssh: |
+            echo 'user=KanzatBot\npassword=${{secrets.BOT_KEY}}' /data/project/kanzattool1/credentials.properties
+            become kanzattool1 sh /data/project/kanzattool1/deploy.sh

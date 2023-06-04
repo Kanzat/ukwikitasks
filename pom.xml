@@ -5,12 +5,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.wikipedia.kanzatbot</groupId>
-    <artifactId>wikipedia-need-attention-pages4</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <artifactId>ukwikitasks</artifactId>
+    <version>1.0</version>
 
     <name>wikipedia-need-attention-pages4</name>
-    <!-- FIXME change it to the project's website -->
-    <url>http://www.example.com</url>
 
     <properties>
         <maven.compiler.target>11</maven.compiler.target>
@@ -18,59 +16,22 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <repositories>
-        <repository>
-            <id>central</id>
-            <url>https://repo1.maven.org/maven2</url>
-        </repository>
-<!--        <repository>-->
-<!--            <id>kanzat</id>-->
-<!--            <url>https://maven.pkg.github.com/Kanzat/jwiki</url>-->
-<!--            <snapshots>-->
-<!--                <enabled>true</enabled>-->
-<!--            </snapshots>-->
-<!--        </repository>-->
-    </repositories>
-
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
+            <version>4.13.1</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.21</version>
-        </dependency>
-<!--        <dependency>-->
-<!--            <groupId>net.sourceforge</groupId>-->
-<!--            <artifactId>jwbf</artifactId>-->
-<!--            <version>3.1.1</version>-->
-<!--        </dependency>-->
-        <!-- https://mvnrepository.com/artifact/com.bordercloud/SPARQL-JAVA -->
-        <dependency>
-            <groupId>com.bordercloud</groupId>
-            <artifactId>SPARQL-JAVA</artifactId>
-            <version>1.0.8</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.fastily/jwiki -->
-<!--        <dependency>-->
-<!--            <groupId>org.fastily</groupId>-->
-<!--            <artifactId>jwiki</artifactId>-->
-<!--            <version>1.8.0</version>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>org.kanzat</groupId>
             <artifactId>jwiki</artifactId>
             <version>1.8.1</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.8.6</version>
+            <version>2.8.9</version>
         </dependency>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
@@ -82,58 +43,26 @@
             <artifactId>commons-lang3</artifactId>
             <version>3.11</version>
         </dependency>
-        <!-- overrides -->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.httpcomponents</groupId>-->
-<!--            <artifactId>httpclient</artifactId>-->
-<!--            <version>4.5.12</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.fasterxml.jackson.core</groupId>-->
-<!--            <artifactId>jackson-core</artifactId>-->
-<!--            <version>2.10.2</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.fasterxml.jackson.core</groupId>-->
-<!--            <artifactId>jackson-databind</artifactId>-->
-<!--            <version>2.10.2</version>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
-            <version>1.2.3</version>
+            <version>1.2.9</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.2.3</version>
+            <version>1.2.9</version>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <!--      <plugin>-->
-            <!--        <groupId>org.apache.maven.plugins</groupId>-->
-            <!--        <artifactId>maven-dependency-plugin</artifactId>-->
-            <!--        <executions>-->
-            <!--          <execution>-->
-            <!--            <id>copy-dependencies</id>-->
-            <!--            <phase>prepare-package</phase>-->
-            <!--            <goals>-->
-            <!--              <goal>copy-dependencies</goal>-->
-            <!--            </goals>-->
-            <!--            <configuration>-->
-            <!--              <outputDirectory>${project.build.directory}/lib</outputDirectory>-->
-            <!--              <overWriteReleases>false</overWriteReleases>-->
-            <!--              <overWriteSnapshots>false</overWriteSnapshots>-->
-            <!--              <overWriteIfNewer>true</overWriteIfNewer>-->
-            <!--            </configuration>-->
-            <!--          </execution>-->
-            <!--        </executions>-->
-            <!--      </plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <finalName>ukwikitasks</finalName>
+                </configuration>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -149,6 +78,7 @@
                             <descriptorRefs>
                                 <descriptorRef>jar-with-dependencies</descriptorRef>
                             </descriptorRefs>
+                            <appendAssemblyId>false</appendAssemblyId>
                         </configuration>
                     </execution>
                 </executions>
