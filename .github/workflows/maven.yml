@@ -71,11 +71,13 @@ jobs:
           user: kanzat
           key: ${{secrets.DC_PASS}}
           connect_timeout: 10s
+          # Create a credentials file with 600 mode
+          # Create a startcmd.sh file
+          first_ssh: |
+            become ${{env.TF_TOOL}} bash -c "install -m 600 <(echo 'user=KanzatBot\npassword=${{secrets.BOT_KEY}}') ${{env.TF_TOOL_DIR}}/credentials.properties"
+            become ${{env.TF_TOOL}} bash -c "echo '/usr/bin/java -jar ${{env.TF_TOOL_DIR}}/${{env.ARTIFACT_FILE}} "${{env.TF_TOOL_DIR}}/credentials.properties"' > ${{env.TF_TOOL_DIR}}/startcmd.sh"
           scp: |
             './${{env.ARTIFACT_FILE}}' => ${{env.TF_TOOL_DIR}}/
-            './.github/workflows/startcmd.sh' => ${{env.TF_TOOL_DIR}}/
             './.github/workflows/deploy.sh' => ${{env.TF_TOOL_DIR}}/
           last_ssh: |
-            echo 'user=KanzatBot\npassword=${{secrets.BOT_KEY}}' ${{env.TF_TOOL_DIR}}/credentials.properties
-            echo '/usr/bin/java -jar ${{env.TF_TOOL_DIR}}/${{env.ARTIFACT_FILE}} "${{env.TF_TOOL_DIR}}/credentials.properties"' > startcmd.sh
-            become ${{env.TF_TOOL}} sh ${{env.TF_TOOL_DIR}}/deploy.sh
+            become ${{env.TF_TOOL}} sh ${{env.TF_TOOL_DIR}}/deploy.sh         
