@@ -13,7 +13,6 @@ on:
 env:
   TF_USER: kanzat
   TF_TOOL: kanzattool1
-  BOT_USER: KanzatBot
   ARTIFACT_FILE: ukwikitasks.jar
 
 jobs:
@@ -76,7 +75,6 @@ jobs:
           # Create a credentials file with 600 mode
           # Create a startcmd.sh file
           first_ssh: |
-            become ${{env.TF_TOOL}} bash -c "install -m 600 <(echo -e 'user=${{env.BOT_USER}}\npassword=${{secrets.BOT_KEY}}') ${{env.TF_TOOL_DIR}}/credentials.properties"
             become ${{env.TF_TOOL}} bash -c "install -m 755 <(echo '/usr/bin/java -jar ${{env.TF_TOOL_DIR}}/${{env.ARTIFACT_FILE}} "${{env.TF_TOOL_DIR}}/credentials.properties"') ${{env.TF_TOOL_DIR}}/startcmd.sh"
           scp: |
             './${{env.ARTIFACT_FILE}}' => ${{env.TF_TOOL_DIR}}/
