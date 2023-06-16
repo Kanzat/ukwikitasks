@@ -5,9 +5,8 @@ import org.fastily.jwiki.core.Wiki;
 import org.wikipedia.kanzatbot.jwiki.JWikiUtils;
 import org.wikipedia.kanzatbot.jwiki.RecentChangeEntry;
 
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -22,8 +21,8 @@ public class CopyvioDetector {
     private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMMM yyyy", ukrainianLocale);
 
     public static void runInNewPages(Wiki ukWiki) {
-        Instant end = LocalDate.now().atStartOfDay().toInstant(ZoneOffset.UTC);
-        Instant start = end.minus(1, ChronoUnit.DAYS);
+        LocalDateTime end = LocalDate.now().atStartOfDay();
+        LocalDateTime start = end.minus(1, ChronoUnit.DAYS);
         List<RecentChangeEntry> recentChanges = JWikiUtils.getNewPages(ukWiki, start, end);
         log.info("За останню добу створено {} статей:", recentChanges.size());
         for (RecentChangeEntry recentChange : recentChanges) {
@@ -39,7 +38,7 @@ public class CopyvioDetector {
             try {
                 CopyvioResultDto copyvio = CopyvioClient.getForTitle(title);
                 if (copyvio.best != null &&
-                        // (copyvio.best.violation.equals("suspected") || copyvio.best.violation.equals("possible")) &&
+                        (copyvio.best.violation.equals("suspected") || copyvio.best.violation.equals("possible")) &&
                         copyvio.best.confidence > 0) {
                     log.info("Article {} is likely to have issues with copyvio", title);
 
@@ -62,4 +61,5 @@ public class CopyvioDetector {
         newPageText += originalPageText;
         ukWiki.edit(reportTitle, newPageText, "upd");
     }
+
 }

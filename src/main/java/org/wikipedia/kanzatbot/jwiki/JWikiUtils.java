@@ -7,7 +7,7 @@ import org.fastily.jwiki.util.FL;
 import org.fastily.jwiki.util.GSONP;
 import org.fastily.jwiki.util.Tuple;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ import java.util.stream.Stream;
 
 public class JWikiUtils {
 
-    public static List<RecentChangeEntry> getNewPages(final Wiki wiki, final Instant start, final Instant end) {
+    public static List<RecentChangeEntry> getNewPages(final Wiki wiki, final LocalDateTime start, final LocalDateTime end) {
         final WQuery.QTemplate RECENTCHANGES = new WQuery.QTemplate(
                 FL.pMap("list", "recentchanges", "rcprop", "title|timestamp|user|redirect", "rctype", "new", "rcnamespace", "0"), "rclimit",
                 "recentchanges");
