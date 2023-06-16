@@ -3,6 +3,7 @@ package org.wikipedia.kanzatbot;
 import okhttp3.HttpUrl;
 import org.fastily.jwiki.core.Wiki;
 import org.wikipedia.kanzatbot.auth.Auth;
+import org.wikipedia.kanzatbot.copyvio.CopyvioDetector;
 import org.wikipedia.kanzatbot.potd.CreateCandidateImagesPage;
 import org.wikipedia.kanzatbot.potd.ImportImages;
 
@@ -25,6 +26,7 @@ public class Main {
                 "Ця сторінка містить [[Вікіпедія:Вікі любить Землю/Переможці|переможців конкурсу Вікі любить Землю]], які ще жоден раз не ставали вибраним зображенням на головній сторінці");
         ImportImages.startImport();
         // CreateCandidatePatrolsPage.create();
+        CopyvioDetector.runInNewPages(ukWiki);
     }
 
 }
