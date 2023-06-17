@@ -56,7 +56,7 @@ public class DeletedPagesRestored {
         StringBuilder report = new StringBuilder();
         report.append("{| class=\"wikitable\"\n");
         report.append("|-\n");
-        report.append("! Стаття !! Редирект !! Попередні вилученя !! Попередні відновлення !! Журнал \n");
+        report.append("! Стаття !! Редирект !! Попередні вилучення !! Попередні відновлення !! Журнал \n");
         report.append("|-\n");
         for (RecentChangeEntry restoredPage : restoredPages) {
             List<String> linksHere = wiki.whatLinksHere(restoredPage.title);
