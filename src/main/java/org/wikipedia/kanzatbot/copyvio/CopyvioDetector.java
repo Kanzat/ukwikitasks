@@ -20,7 +20,7 @@ public class CopyvioDetector {
     private static Locale ukrainianLocale = new Locale("uk", "UA");
     private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMMM yyyy", ukrainianLocale);
 
-    public static void runInNewPages(Wiki ukWiki) {
+    public static void runInNewPages(Wiki ukWiki) throws InterruptedException {
         LocalDateTime end = LocalDate.now().atStartOfDay();
         LocalDateTime start = end.minus(1, ChronoUnit.DAYS);
         List<RecentChangeEntry> recentChanges = JWikiUtils.getNewPages(ukWiki, start, end);
@@ -34,22 +34,36 @@ public class CopyvioDetector {
 
         StringBuilder report = new StringBuilder();
         for (RecentChangeEntry recentChange : recentChangesFiltered) {
-            String title = recentChange.title;
-            try {
-                CopyvioResultDto copyvio = CopyvioClient.getForTitle(title);
-                if (copyvio.best != null &&
-                        (copyvio.best.violation.equals("suspected") || copyvio.best.violation.equals("possible")) &&
-                        copyvio.best.confidence > 0) {
-                    log.info("Article {} is likely to have issues with copyvio", title);
-
-                    report.append("* [[").append(title).append("]] — violation: ").append(copyvio.best.violation)
-                            .append(", confidence: ").append(copyvio.best.confidence).append("\n");
-                } else {
-                    log.info("Article {} is likely to be ok", title);
+            final String title = recentChange.title;
+            final int maxRetries = 3;
+            int retryCount = 0;
+            CopyvioResultDto copyvio = null;
+            boolean failed = false;
+            while (retryCount < maxRetries) {
+                try {
+                    copyvio = CopyvioClient.getForTitle(title);
+                    break;
+                } catch (Exception e) {
+                    failed = true;
+                    log.error("Failed to get copyvio for page {}. Retrying...", title, e);
+                    retryCount++;
+                    Thread.sleep(60000L * retryCount);
                 }
-            } catch (Exception e) {
-                log.error("Failed to get copyvio for page {}", title, e);
+            }
+
+            if (failed) {
                 report.append("* [[").append(title).append("]] — failed").append("\n");
+            } else if (copyvio == null) {
+                log.error("Not possible");
+            } else if (copyvio.best != null &&
+                    (copyvio.best.violation.equals("suspected") || copyvio.best.violation.equals("possible")) &&
+                    copyvio.best.confidence > 0
+            ) {
+                log.info("Article {} is likely to have issues with copyvio", title);
+                report.append("* [[").append(title).append("]] — violation: ").append(copyvio.best.violation)
+                        .append(", confidence: ").append(copyvio.best.confidence).append("\n");
+            } else {
+                log.info("Article {} is likely to be ok", title);
             }
         }
 

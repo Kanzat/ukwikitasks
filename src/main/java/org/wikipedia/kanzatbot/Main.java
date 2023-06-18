@@ -33,7 +33,7 @@ public class Main {
         runIsolated(() -> DeletedPagesRestored.find(ukWiki));
     }
 
-    private static void runIsolated(Runnable runnable) {
+    private static void runIsolated(ThrowableRunnable runnable) {
         try {
             runnable.run();
         } catch (Exception e) {
