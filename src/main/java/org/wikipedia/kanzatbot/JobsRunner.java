@@ -11,6 +11,7 @@ import org.wikipedia.kanzatbot.copyvio.CopyvioDetector;
 import org.wikipedia.kanzatbot.deletedrestored.DeletedPagesRestored;
 import org.wikipedia.kanzatbot.potd.CreateCandidateImagesPage;
 import org.wikipedia.kanzatbot.potd.ImportImages;
+import org.wikipedia.kanzatbot.vpvylhelper.VpVylAdminHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +35,8 @@ public class JobsRunner implements CommandLineRunner {
     DeletedPagesRestored deletedPagesRestored;
     @Autowired
     ActiveBots activeBots;
+    @Autowired
+    VpVylAdminHelper vpVylAdminHelper;
 
     @Override
     public void run(String... args) {
@@ -48,6 +51,7 @@ public class JobsRunner implements CommandLineRunner {
         jobs.add(() -> copyvioDetector.runInNewPages(ukWiki));
         jobs.add(() -> deletedPagesRestored.find(ukWiki));
         jobs.add(() -> activeBots.generateReport(ukWiki));
+        jobs.add(() -> vpVylAdminHelper.generateReport(ukWiki));
 
         boolean hasFailure = false;
         for (ThrowableRunnable job : jobs) {
