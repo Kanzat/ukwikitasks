@@ -41,11 +41,11 @@ public class VpVylAdminHelper {
         deletionsInProgress.sort((c1, c2) -> getDateFromTitle(c2).compareTo(getDateFromTitle(c1)));
 
         StringBuilder sb = new StringBuilder();
-        sb.append("== Неспірні випадки ==\n");
+        sb.append("== Неспірні номінації ==\n");
         List<PageDeletion> simpleDeletions = deletionsInProgress.stream().filter(pd -> pd.votedAgainst == 0 || pd.votedFor == 0).collect(toList());
         display(sb, simpleDeletions);
         deletionsInProgress.removeAll(simpleDeletions);
-        sb.append("== Спірні випадки ==\n");
+        sb.append("== Спірні номінації ==\n");
         List<PageDeletion> mediumDeletions =
                 deletionsInProgress.stream().filter(pd -> pd.status != PageDeletionStatus.CONTESTED).collect(toList());
         display(sb, mediumDeletions);
