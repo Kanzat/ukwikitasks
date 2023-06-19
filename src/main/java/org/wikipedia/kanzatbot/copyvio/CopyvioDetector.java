@@ -73,7 +73,7 @@ public class CopyvioDetector {
         final String originalPageText = ukWiki.getPageText(reportTitle);
         String newPageText = "== " + formatter.format(start) + " ==\n";
         newPageText += report.toString();
-        newPageText += "\n\n";
+        newPageText += "\n";
         newPageText += originalPageText;
         ukWiki.edit(reportTitle, newPageText, "upd");
     }

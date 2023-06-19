@@ -82,7 +82,7 @@ public class DeletedPagesRestored {
         final String originalPageText = wiki.getPageText(reportTitle);
         String newPageText = "== " + formatter.format(start) + " ==\n";
         newPageText += report.toString();
-        newPageText += "\n\n";
+        newPageText += "\n";
         newPageText += originalPageText;
         wiki.edit(reportTitle, newPageText, "upd");
     }
