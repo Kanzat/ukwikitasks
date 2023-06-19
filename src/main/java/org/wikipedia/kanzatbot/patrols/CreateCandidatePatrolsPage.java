@@ -1,12 +1,16 @@
 package org.wikipedia.kanzatbot.patrols;
 
+import lombok.extern.slf4j.Slf4j;
+import org.fastily.jwiki.core.Wiki;
+import org.springframework.stereotype.Component;
+
 import java.util.regex.Pattern;
 
-import static org.wikipedia.kanzatbot.Main.ukWiki;
-
+@Slf4j
+@Component
 public class CreateCandidatePatrolsPage {
 
-    public static void create() {
+    public void create(Wiki ukWiki) {
         final String activeUsersPage = ukWiki.getPageText("Користувач:RLutsBot/Активні");
         final int startIndex = activeUsersPage.indexOf("|-");
         final int startIndex2 = activeUsersPage.indexOf("|-", startIndex + 2);
@@ -21,9 +25,9 @@ public class CreateCandidatePatrolsPage {
                 final String userLink = userInfo.substring(startLink + 3, startEditCount).trim();
                 final String userName = userLink.substring("[[User:".length(), userLink.indexOf("|")).trim();
                 final int editCount = Integer.parseInt(userInfo.substring(startEditCount + 2).trim());
-                System.out.println(rank + " " + userName + " " + editCount);
+                log.info(rank + " " + userName + " " + editCount);
             } catch (NumberFormatException e) {
-                System.out.println("ignore the last one: " + userInfo);
+                log.warn("ignore the last one: " + userInfo);
             }
         }
     }

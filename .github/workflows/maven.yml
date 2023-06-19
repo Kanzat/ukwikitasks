@@ -75,7 +75,7 @@ jobs:
           # Create a credentials file with 600 mode
           # Create a startcmd.sh file
           first_ssh: |
-            become ${{env.TF_TOOL}} bash -c "install -m 755 <(echo '/usr/bin/java -jar ${{env.TF_TOOL_DIR}}/${{env.ARTIFACT_FILE}} "${{env.TF_TOOL_DIR}}/credentials.properties"') ${{env.TF_TOOL_DIR}}/startcmd.sh"
+            become ${{env.TF_TOOL}} bash -c "install -m 755 <(echo '/usr/bin/java -jar ${{env.TF_TOOL_DIR}}/${{env.ARTIFACT_FILE}} --org.kanzatbot.credentials.location="${{env.TF_TOOL_DIR}}/credentials.properties"') ${{env.TF_TOOL_DIR}}/startcmd.sh"
           scp: |
             './${{env.ARTIFACT_FILE}}' => ${{env.TF_TOOL_DIR}}/
             './.github/workflows/deploy.sh' => ${{env.TF_TOOL_DIR}}/

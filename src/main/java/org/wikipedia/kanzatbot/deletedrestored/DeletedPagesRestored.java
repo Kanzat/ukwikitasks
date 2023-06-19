@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.HttpUrl;
 import org.fastily.jwiki.core.Wiki;
 import org.fastily.jwiki.dwrap.LogEntry;
+import org.springframework.stereotype.Component;
 import org.wikipedia.kanzatbot.jwiki.JWikiUtils;
 import org.wikipedia.kanzatbot.jwiki.RecentChangeEntry;
 
@@ -19,12 +20,13 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 @Slf4j
+@Component
 public class DeletedPagesRestored {
 
     private static Locale ukrainianLocale = new Locale("uk", "UA");
     private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMMM yyyy", ukrainianLocale);
 
-    public static void find(Wiki wiki) {
+    public void find(Wiki wiki) {
         LocalDateTime end = LocalDate.now().atStartOfDay();
         LocalDateTime start = end.minus(1, ChronoUnit.DAYS);
         List<RecentChangeEntry> newPages = JWikiUtils.getNewPages(wiki, start, end);

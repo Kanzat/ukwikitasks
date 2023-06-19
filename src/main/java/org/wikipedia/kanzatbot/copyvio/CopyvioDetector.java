@@ -2,6 +2,7 @@ package org.wikipedia.kanzatbot.copyvio;
 
 import lombok.extern.slf4j.Slf4j;
 import org.fastily.jwiki.core.Wiki;
+import org.springframework.stereotype.Component;
 import org.wikipedia.kanzatbot.jwiki.JWikiUtils;
 import org.wikipedia.kanzatbot.jwiki.RecentChangeEntry;
 
@@ -15,12 +16,13 @@ import java.util.Locale;
 import static java.util.stream.Collectors.toList;
 
 @Slf4j
+@Component
 public class CopyvioDetector {
 
     private static Locale ukrainianLocale = new Locale("uk", "UA");
     private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMMM yyyy", ukrainianLocale);
 
-    public static void runInNewPages(Wiki ukWiki) throws InterruptedException {
+    public void runInNewPages(Wiki ukWiki) throws InterruptedException {
         LocalDateTime end = LocalDate.now().atStartOfDay();
         LocalDateTime start = end.minus(1, ChronoUnit.DAYS);
         List<RecentChangeEntry> recentChanges = JWikiUtils.getNewPages(ukWiki, start, end);

@@ -1,29 +1,23 @@
 package org.wikipedia.kanzatbot.potd;
 
+import lombok.extern.slf4j.Slf4j;
 import org.fastily.jwiki.core.Wiki;
 import org.fastily.jwiki.util.Tuple;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import org.wikipedia.kanzatbot.jwiki.JWikiUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.regex.Pattern;
 
-import static org.wikipedia.kanzatbot.Main.commonsWiki;
-
+@Slf4j
+@Component
 public class CreateCandidateImagesPage {
 
-    private static final Logger logger = LoggerFactory.getLogger(CreateCandidateImagesPage.class);
-
     // Check pictures are not used as picture of the day
-    public static void create(Wiki startWiki, final String startPage, Wiki endWiki, String endPage, String intro) {
-        final ArrayList<String> imagesOnPage = startWiki.getImagesOnPage(startPage);
+    public void create(Wiki wiki, Wiki commonsWiki, final String startPage, String endPage, String intro) {
+        final ArrayList<String> imagesOnPage = wiki.getImagesOnPage(startPage);
         final List<String> usedAsPod = new ArrayList<>();
         final List<String> notUsedAsPod = new ArrayList<>();
         final List<String> filteredImages = new ArrayList<>();
@@ -50,8 +44,8 @@ public class CreateCandidateImagesPage {
         }
 
         final String generatedMarkup = generateMarkup(intro, notUsedAsPod);
-        final boolean success = endWiki.edit(endPage, generatedMarkup, "Автоматичне оновлення інформації");
-        logger.info("Successful operation? " + success);
+        final boolean success = wiki.edit(endPage, generatedMarkup, "Автоматичне оновлення інформації");
+        log.info("Successful operation? " + success);
     }
 
     private static boolean isTechnicalImage(final String s) {
@@ -85,7 +79,7 @@ public class CreateCandidateImagesPage {
     }
 
     private static String generateMarkup(String intro, final Collection<String> images) {
-        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy", new Locale("uk","UA"));
+        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy", new Locale("uk", "UA"));
         final String dateFormatted = LocalDate.now().format(formatter);
         StringBuilder sb = new StringBuilder();
         sb.append(intro + " (станом на " + dateFormatted + " року).\n");

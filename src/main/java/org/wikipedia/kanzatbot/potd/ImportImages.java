@@ -1,27 +1,24 @@
 package org.wikipedia.kanzatbot.potd;
 
+import lombok.extern.slf4j.Slf4j;
 import org.fastily.jwiki.core.WParser;
 import org.fastily.jwiki.core.Wiki;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
-import static org.wikipedia.kanzatbot.Main.commonsWiki;
-import static org.wikipedia.kanzatbot.Main.ukWiki;
-
+@Slf4j
+@Component
 public class ImportImages {
 
-    private static final Logger logger = LoggerFactory.getLogger(ImportImages.class);
-
-    public static void startImport() {
+    public void startImport(Wiki ukWiki, Wiki commonsWiki) {
         boolean useNow = true;
         final LocalDate currentDate = useNow ? LocalDate.now() : LocalDate.of(2021, 1, 1);
         final LocalDate startDate = currentDate.plus(7, ChronoUnit.DAYS);
         final LocalDate endDate = startDate.plus(75, ChronoUnit.DAYS);
-        logger.info("Start date = {}; end date = {}", startDate, endDate);
+        log.info("Start date = {}; end date = {}", startDate, endDate);
         for (LocalDate date = startDate; date.isBefore(endDate); date = date.plusDays(1)) {
             final String year = "" + date.getYear();
             final String month = date.getMonthValue() < 10 ? "0" + date.getMonthValue() : "" + date.getMonthValue();
