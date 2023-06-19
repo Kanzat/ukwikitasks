@@ -11,6 +11,9 @@ import org.wikipedia.kanzatbot.deletedrestored.DeletedPagesRestored;
 import org.wikipedia.kanzatbot.potd.CreateCandidateImagesPage;
 import org.wikipedia.kanzatbot.potd.ImportImages;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Slf4j
 @Component
 public class JobsRunner implements CommandLineRunner {
@@ -34,23 +37,32 @@ public class JobsRunner implements CommandLineRunner {
         final Wiki ukWiki = wikiFactory.getWikipedia("uk");
         final Wiki commonsWiki = wikiFactory.getCommons();
         this.auth.auth(ukWiki);
-        runIsolated(() -> createCandidateImagesPage.create(ukWiki, commonsWiki, "Вікіпедія:Вікі любить пам'ятки/Переможці",
-                "Вікіпедія:Проєкт:Вибране зображення/Кандидати/Вікі любить пам'ятки",
-                "Ця сторінка містить [[Вікіпедія:Вікі любить пам'ятки/Переможці|переможців конкурсу Вікі любить пам'ятки]], які ще жоден раз не ставали вибраним зображенням на головній сторінці"));
-        runIsolated(() -> createCandidateImagesPage.create(ukWiki, commonsWiki, "Вікіпедія:Вікі любить Землю/Переможці",
-                "Вікіпедія:Проєкт:Вибране зображення/Кандидати/Вікі любить Землю",
-                "Ця сторінка містить [[Вікіпедія:Вікі любить Землю/Переможці|переможців конкурсу Вікі любить Землю]], які ще жоден раз не ставали вибраним зображенням на головній сторінці"));
-        runIsolated(() -> importImages.startImport(ukWiki, commonsWiki));
-        // runIsolated(() -> createCandidatePatrolsPage.create(ukWiki));
-        runIsolated(() -> copyvioDetector.runInNewPages(ukWiki));
-        runIsolated(() -> deletedPagesRestored.find(ukWiki));
+        List<ThrowableRunnable> jobs = new ArrayList<>();
+        jobs.add(() -> createCandidateImagesPage.create(ukWiki, commonsWiki, "Вікіпедія:Вікі любить пам'ятки/Переможці", "Вікіпедія:Проєкт:Вибране зображення/Кандидати/Вікі любить пам'ятки", "Ця сторінка містить [[Вікіпедія:Вікі любить пам'ятки/Переможці|переможців конкурсу Вікі любить пам'ятки]], які ще жоден раз не ставали вибраним зображенням на головній сторінці"));
+        jobs.add(() -> createCandidateImagesPage.create(ukWiki, commonsWiki, "Вікіпедія:Вікі любить Землю/Переможці", "Вікіпедія:Проєкт:Вибране зображення/Кандидати/Вікі любить Землю", "Ця сторінка містить [[Вікіпедія:Вікі любить Землю/Переможці|переможців конкурсу Вікі любить Землю]], які ще жоден раз не ставали вибраним зображенням на головній сторінці"));
+        jobs.add(() -> importImages.startImport(ukWiki, commonsWiki));
+        // jobs.add(() -> createCandidatePatrolsPage.create(ukWiki));
+        jobs.add(() -> copyvioDetector.runInNewPages(ukWiki));
+        jobs.add(() -> deletedPagesRestored.find(ukWiki));
+
+        boolean hasFailure = false;
+        for (ThrowableRunnable job : jobs) {
+            if (!runIsolated(job)) {
+                hasFailure = true;
+            }
+        }
+        if (hasFailure) {
+            throw new RuntimeException("There is a failed job");
+        }
     }
 
-    private void runIsolated(ThrowableRunnable runnable) {
+    private boolean runIsolated(ThrowableRunnable runnable) {
         try {
             runnable.run();
+            return true;
         } catch (Exception e) {
             log.error("Operation failed", e);
+            return false;
         }
     }
 
