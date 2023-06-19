@@ -5,6 +5,7 @@ import org.fastily.jwiki.core.Wiki;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.wikipedia.kanzatbot.activebots.ActiveBots;
 import org.wikipedia.kanzatbot.auth.Auth;
 import org.wikipedia.kanzatbot.copyvio.CopyvioDetector;
 import org.wikipedia.kanzatbot.deletedrestored.DeletedPagesRestored;
@@ -31,6 +32,8 @@ public class JobsRunner implements CommandLineRunner {
     CopyvioDetector copyvioDetector;
     @Autowired
     DeletedPagesRestored deletedPagesRestored;
+    @Autowired
+    ActiveBots activeBots;
 
     @Override
     public void run(String... args) {
@@ -44,6 +47,7 @@ public class JobsRunner implements CommandLineRunner {
         // jobs.add(() -> createCandidatePatrolsPage.create(ukWiki));
         jobs.add(() -> copyvioDetector.runInNewPages(ukWiki));
         jobs.add(() -> deletedPagesRestored.find(ukWiki));
+        jobs.add(() -> activeBots.generateReport(ukWiki));
 
         boolean hasFailure = false;
         for (ThrowableRunnable job : jobs) {
