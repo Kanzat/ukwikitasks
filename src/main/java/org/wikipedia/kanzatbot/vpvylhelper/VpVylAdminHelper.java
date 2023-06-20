@@ -42,7 +42,8 @@ public class VpVylAdminHelper {
 
         StringBuilder sb = new StringBuilder();
         sb.append("== Неспірні номінації ==\n");
-        List<PageDeletion> simpleDeletions = deletionsInProgress.stream().filter(pd -> pd.votedAgainst == 0 || pd.votedFor == 0).collect(toList());
+        List<PageDeletion> simpleDeletions =
+                deletionsInProgress.stream().filter(pd -> pd.votedReject.size() == 0 || pd.votedApprove.size() == 0).collect(toList());
         display(sb, simpleDeletions);
         deletionsInProgress.removeAll(simpleDeletions);
         sb.append("== Спірні номінації ==\n");
@@ -64,8 +65,8 @@ public class VpVylAdminHelper {
         for (int i = 0; i < deletions.size(); i++) {
             PageDeletion deletion = deletions.get(i);
             report.append("| " + (i + 1) + " || " + getTitleLink(deletion) + " || " + getFullLocation(deletion) +
-                    " || " + deletion.votedFor + " " +
-                    "|| " + deletion.votedAgainst +
+                    " || " + deletion.votedApprove + " " +
+                    "|| " + deletion.votedReject +
                     "\n");
             report.append("|-\n");
         }

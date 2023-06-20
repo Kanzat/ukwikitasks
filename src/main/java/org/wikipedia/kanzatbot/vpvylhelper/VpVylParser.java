@@ -1,15 +1,16 @@
 package org.wikipedia.kanzatbot.vpvylhelper;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.fastily.jwiki.core.Wiki;
+import org.fastily.jwiki.dwrap.PageSection;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import static java.util.stream.Collectors.toList;
 
 @Slf4j
 @Component
@@ -43,21 +44,26 @@ public class VpVylParser {
                     throw new IllegalStateException("Child " + header + " is not of level 2, but was " + level);
                 }
 
-                Pair<Integer, Integer> forAndAgainst = parseForAndAgainst(child.getContent().text);
-
                 // Filter out subsections like "References"
                 List<JWikiTree> subchildren = child.getChildren();
-                if (subchildren.stream().anyMatch(c -> c.getHeader().equals("Підсумок"))) {
-                    result.add(new PageDeletion(location, header, PageDeletionStatus.COMPLETED, forAndAgainst.getLeft(),
-                            forAndAgainst.getRight()));
-                } else if (subchildren.stream().anyMatch(c -> c.getHeader().equals("Оскаржений підсумок"))) {
-                    result.add(new PageDeletion(location, header, PageDeletionStatus.CONTESTED, forAndAgainst.getLeft(),
-                            forAndAgainst.getRight()));
+                PageDeletion.PageDeletionBuilder pdb = PageDeletion.builder().location(location).title(header);
+                PageSection summarySection =
+                        subchildren.stream().filter(c -> c.getHeader().equals("Підсумок")).findFirst().map(JWikiTree::getContent).orElse(null);
+                PageSection contestedSummarySection =
+                        subchildren.stream().filter(c -> c.getHeader().equals("Оскаржений підсумок")).findFirst().map(JWikiTree::getContent).orElse(null);
+                pdb.finalSummaryAdmin(parseSummary(summarySection));
+                pdb.contestedSummaryAdmin(parseSummary(contestedSummarySection));
+                if (summarySection != null) {
+                    pdb.status(PageDeletionStatus.COMPLETED);
+                } else if (contestedSummarySection != null) {
+                    pdb.status(PageDeletionStatus.CONTESTED);
                 } else {
-                    result.add(new PageDeletion(location, header, PageDeletionStatus.IN_PROGRESS,
-                            forAndAgainst.getLeft(),
-                            forAndAgainst.getRight()));
+                    pdb.status(PageDeletionStatus.IN_PROGRESS);
                 }
+
+                parseMainText(child.getContent().text, pdb);
+
+                result.add(pdb.build());
             } catch (Exception e) {
                 log.error("Failed to parse {}", header, e);
             }
@@ -65,7 +71,19 @@ public class VpVylParser {
         return result;
     }
 
-    private Pair<Integer, Integer> parseForAndAgainst(String content) {
+    private String parseSummary(PageSection summarySection) {
+        if (summarySection == null) {
+            return null;
+        }
+        String firstNonHeaderLine =
+                Arrays.stream(summarySection.text.split("\n")).filter(s -> !s.trim().isBlank()).skip(1).findFirst().orElse(null);
+        if (firstNonHeaderLine == null) {
+            return null;
+        }
+        return getSignatureUser(firstNonHeaderLine).orElse(null);
+    }
+
+    private void parseMainText(String content, PageDeletion.PageDeletionBuilder pdb) {
         String approveStartText = "* {{За}}:";
         String rejectStartText = "* {{Проти}}:";
         String afterRejectText = "* {{";
@@ -81,12 +99,38 @@ public class VpVylParser {
         if (afterRejectIndex == -1) {
             throw new IllegalStateException("Unable to find after-reject start");
         }
+        String nominatedByLine =
+                Arrays.stream(content.split("\n")).filter(l -> l.startsWith("* '''Постави")).findFirst().orElseThrow(() -> new IllegalStateException("Unable to find nominated-by start"));
         String approveText = content.substring(approveIndex + approveStartText.length(), rejectIndex);
         String rejectText = content.substring(rejectIndex + rejectStartText.length(), afterRejectIndex);
-        Pattern pattern = Pattern.compile("(?m)^# ");
-        Matcher matcherApprove = pattern.matcher(approveText);
-        Matcher matcherReject = pattern.matcher(rejectText);
-        return Pair.of((int) matcherApprove.results().count(), (int) matcherReject.results().count());
+        pdb.nominatedBy(getSignatureUser(nominatedByLine).orElse(null)).votedApprove(getVoters(approveText)).votedReject(getVoters(rejectText));
+    }
+
+    private List<String> getVoters(String text) {
+        return Arrays.stream(text.split("\n")).filter(l -> l.startsWith("# ")).map(this::getSignatureUser).map(o -> o.orElse(null)).collect(toList());
+    }
+
+    private Optional<String> getSignatureUser(String line) {
+        String userText1 = "[[Користувач:";
+        String userText2 = "[[User:";
+        String userText3 = "[[Обговорення користувача:";
+        int userIndex = line.lastIndexOf(userText1);
+        if (userIndex == -1) {
+            userIndex = line.lastIndexOf(userText2);
+        }
+        if (userIndex == -1) {
+            userIndex = line.lastIndexOf(userText3);
+        }
+        if (userIndex == -1) {
+            log.warn("Failed to find signature in line {}", line);
+            return Optional.empty();
+        }
+        int endIndex = line.indexOf("|", userIndex + userText1.length());
+        if (endIndex == -1) {
+            log.warn("Failed to find signature in line {}", line);
+            return Optional.empty();
+        }
+        return Optional.of(line.substring(userIndex + userText1.length(), endIndex));
     }
 
 }

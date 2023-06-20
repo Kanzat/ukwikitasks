@@ -12,6 +12,7 @@ import org.wikipedia.kanzatbot.deletedrestored.DeletedPagesRestored;
 import org.wikipedia.kanzatbot.potd.CreateCandidateImagesPage;
 import org.wikipedia.kanzatbot.potd.ImportImages;
 import org.wikipedia.kanzatbot.vpvylhelper.VpVylAdminHelper;
+import org.wikipedia.kanzatbot.vpvylhelper.VpVylStats;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,8 @@ public class JobsRunner implements CommandLineRunner {
     ActiveBots activeBots;
     @Autowired
     VpVylAdminHelper vpVylAdminHelper;
+    @Autowired
+    VpVylStats vpVylStats;
 
     @Override
     public void run(String... args) {
@@ -52,6 +55,7 @@ public class JobsRunner implements CommandLineRunner {
         jobs.add(() -> deletedPagesRestored.find(ukWiki));
         jobs.add(() -> activeBots.generateReport(ukWiki));
         jobs.add(() -> vpVylAdminHelper.generateReport(ukWiki));
+        jobs.add(() -> vpVylStats.generateReport(ukWiki));
 
         boolean hasFailure = false;
         for (ThrowableRunnable job : jobs) {
