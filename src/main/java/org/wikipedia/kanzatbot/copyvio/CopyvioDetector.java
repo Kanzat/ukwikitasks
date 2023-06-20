@@ -49,7 +49,7 @@ public class CopyvioDetector {
                     failed = true;
                     log.error("Failed to get copyvio for page {}. Retrying...", title, e);
                     retryCount++;
-                    Thread.sleep(60000L * retryCount);
+                    Thread.sleep(2 * 60000L * retryCount);
                 }
             }
 
