@@ -8,10 +8,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -53,6 +50,7 @@ public class VpVylStats {
         report.append("|-\n");
         Map<String, List<PageDeletion>> deletionsByNominators =
                 allDeletions.stream().filter(d -> d.nominatedBy != null).collect(Collectors.groupingBy(deletion -> deletion.nominatedBy));
+        deletionsByNominators = sortByValueCount(deletionsByNominators);
         for (Map.Entry<String, List<PageDeletion>> entry : deletionsByNominators.entrySet()) {
             long completed = entry.getValue().stream().filter(deletion -> deletion.status == PageDeletionStatus.COMPLETED).count();
             int total = entry.getValue().size();
@@ -71,11 +69,25 @@ public class VpVylStats {
         report.append("|-\n");
         Map<String, List<PageDeletion>> deletionsBySummarizers =
                 allDeletions.stream().filter(d -> d.finalSummaryAdmin != null).collect(Collectors.groupingBy(deletion -> deletion.finalSummaryAdmin));
+        deletionsBySummarizers = sortByValueCount(deletionsBySummarizers);
         for (Map.Entry<String, List<PageDeletion>> entry : deletionsBySummarizers.entrySet()) {
             report.append("| " + entry.getKey() + " || " + entry.getValue().size() + "\n");
             report.append("|-\n");
         }
         report.append("|}\n");
+    }
+
+    private <K, V> Map<K, List<V>> sortByValueCount(Map<K, List<V>> map) {
+        List<Map.Entry<K, List<V>>> list = new LinkedList<>(map.entrySet());
+
+        Collections.sort(list, (o1, o2) -> Integer.compare(o2.getValue().size(), o1.getValue().size()));
+
+        Map<K, List<V>> sortedMap = new LinkedHashMap<>();
+        for (Map.Entry<K, List<V>> entry : list) {
+            sortedMap.put(entry.getKey(), entry.getValue());
+        }
+
+        return sortedMap;
     }
 
 }
