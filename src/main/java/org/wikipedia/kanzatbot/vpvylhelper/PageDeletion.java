@@ -18,4 +18,6 @@ public class PageDeletion {
     String nominatedBy;
     String contestedSummaryAdmin;
     String finalSummaryAdmin;
+    PageDeletionCompletedStatus contestedSummaryStatus;
+    PageDeletionCompletedStatus finalSummaryStatus;
 }

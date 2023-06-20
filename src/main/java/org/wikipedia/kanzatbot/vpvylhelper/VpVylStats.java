@@ -11,6 +11,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
+
 @Slf4j
 @Component
 public class VpVylStats {
@@ -46,16 +48,28 @@ public class VpVylStats {
         report.append("== Номінатори ==\n");
         report.append("{| class=\"wikitable sortable\"\n");
         report.append("|-\n");
-        report.append("! Номінатор !! Кількість номінацій !! З підсумком (к-сть) !! З підсумком (%) \n");
+        report.append("! Номінатор !! Кількість номінацій !! З підсумком (%) !! Вилучено (%) !! Залишено (%) \n");
         report.append("|-\n");
         Map<String, List<PageDeletion>> deletionsByNominators =
                 allDeletions.stream().filter(d -> d.nominatedBy != null).collect(Collectors.groupingBy(deletion -> deletion.nominatedBy));
         deletionsByNominators = sortByValueCount(deletionsByNominators);
         for (Map.Entry<String, List<PageDeletion>> entry : deletionsByNominators.entrySet()) {
-            long completed = entry.getValue().stream().filter(deletion -> deletion.status == PageDeletionStatus.COMPLETED).count();
-            int total = entry.getValue().size();
-            int percentage = (int) (completed * 100 / total);
-            report.append("| " + entry.getKey() + " || " + total + " || " + completed + " || " + percentage + "%\n");
+            final int nominatedTotal = entry.getValue().size();
+            final List<PageDeletion> completed =
+                    entry.getValue().stream().filter(d -> d.status == PageDeletionStatus.COMPLETED).collect(toList());
+            int nominatedCompleted = completed.size();
+            int nominatedPercentage = nominatedCompleted * 100 / nominatedTotal;
+            int nominatedDeleted =
+                    (int) completed.stream().filter(d -> d.finalSummaryStatus == PageDeletionCompletedStatus.DELETED
+                            || d.finalSummaryStatus == PageDeletionCompletedStatus.DELETED_WITH_REDIRECT).count();
+            int nominatedDeletedPercentage = nominatedDeleted * 100 / nominatedTotal;
+            int nominatedKept =
+                    (int) completed.stream().filter(d -> d.finalSummaryStatus == PageDeletionCompletedStatus.KEPT).count();
+            int nominatedKeptPercentage = nominatedKept * 100 / nominatedTotal;
+            report.append(String.format("| %s || %d || %d (%d%%) || %d (%d%%) || %d (%d%%) %n", entry.getKey(),
+                    nominatedTotal,
+                    nominatedCompleted, nominatedPercentage, nominatedDeleted, nominatedDeletedPercentage,
+                    nominatedKept, nominatedKeptPercentage));
             report.append("|-\n");
         }
         report.append("|}\n");
@@ -65,13 +79,24 @@ public class VpVylStats {
         report.append("== Адміністратори ==\n");
         report.append("{| class=\"wikitable sortable\"\n");
         report.append("|-\n");
-        report.append("! Адміністратор !! Кількість підсумків\n");
+        report.append("! Адміністратор !! Кількість підсумків !! Вилучено (%) !! Залишено (%) !! Невідомо\n");
         report.append("|-\n");
         Map<String, List<PageDeletion>> deletionsBySummarizers =
                 allDeletions.stream().filter(d -> d.finalSummaryAdmin != null).collect(Collectors.groupingBy(deletion -> deletion.finalSummaryAdmin));
         deletionsBySummarizers = sortByValueCount(deletionsBySummarizers);
         for (Map.Entry<String, List<PageDeletion>> entry : deletionsBySummarizers.entrySet()) {
-            report.append("| " + entry.getKey() + " || " + entry.getValue().size() + "\n");
+            String administrator = entry.getKey();
+            int totalSummaries = entry.getValue().size();
+            int countDeleted =
+                    (int) entry.getValue().stream().filter(d -> d.finalSummaryStatus == PageDeletionCompletedStatus.DELETED || d.finalSummaryStatus == PageDeletionCompletedStatus.DELETED_WITH_REDIRECT).count();
+            int countDeletedPercentage = countDeleted * 100 / totalSummaries;
+            int countKept =
+                    (int) entry.getValue().stream().filter(d -> d.finalSummaryStatus == PageDeletionCompletedStatus.KEPT).count();
+            int countKeptPercentage = countKept * 100 / totalSummaries;
+            int countOthers =
+                    (int) entry.getValue().stream().filter(d -> d.finalSummaryStatus == PageDeletionCompletedStatus.UNKNOWN || d.finalSummaryStatus == PageDeletionCompletedStatus.UNNOMINATED).count();
+            report.append(String.format("| %s || %d || %d (%d%%) || %d (%d%%) || %d %n", administrator, totalSummaries,
+                    countDeleted, countDeletedPercentage, countKept, countKeptPercentage, countOthers));
             report.append("|-\n");
         }
         report.append("|}\n");

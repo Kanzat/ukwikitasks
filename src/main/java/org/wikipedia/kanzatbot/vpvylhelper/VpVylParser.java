@@ -51,6 +51,8 @@ public class VpVylParser {
                         subchildren.stream().filter(c -> c.getHeader().equals("Оскаржений підсумок")).findFirst().map(JWikiTree::getContent).orElse(null);
                 pdb.finalSummaryAdmin(parseSummary(summarySection));
                 pdb.contestedSummaryAdmin(parseSummary(contestedSummarySection));
+                pdb.finalSummaryStatus(parseSummaryStatus(summarySection));
+                pdb.contestedSummaryStatus(parseSummaryStatus(contestedSummarySection));
                 if (summarySection != null) {
                     pdb.status(PageDeletionStatus.COMPLETED);
                 } else if (contestedSummarySection != null) {
@@ -131,6 +133,26 @@ public class VpVylParser {
             return Optional.empty();
         }
         return Optional.of(line.substring(userIndex + userText.length(), endIndex));
+    }
+
+    private PageDeletionCompletedStatus parseSummaryStatus(PageSection summarySection) {
+        if (summarySection == null) {
+            return null;
+        }
+        String summaryText = summarySection.text.toLowerCase(Locale.ROOT);
+        if (summaryText.contains("вилучено") || summaryText.contains("вилучена") || summaryText.contains("сторінку вилучив адміністратор")) {
+            return PageDeletionCompletedStatus.DELETED;
+        } else if (summaryText.contains("залишено") || summaryText.contains("залишена") || summaryText.contains("перейменовано")) {
+            return PageDeletionCompletedStatus.KEPT;
+        } else if (summaryText.contains("перенаправлено") || summaryText.contains("створено перенаправлення")
+                || summaryText.contains("інформацію перенесено до") || summaryText.contains("замінено на перенаправлення")
+                || summaryText.contains("замінена перенаправленням на")) {
+            return PageDeletionCompletedStatus.DELETED_WITH_REDIRECT;
+        } else if (summaryText.contains("знімаю номінацію")) {
+            return PageDeletionCompletedStatus.UNNOMINATED;
+        } else {
+            return PageDeletionCompletedStatus.UNKNOWN;
+        }
     }
 
 }
