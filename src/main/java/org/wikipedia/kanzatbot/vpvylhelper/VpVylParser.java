@@ -5,10 +5,8 @@ import org.fastily.jwiki.core.Wiki;
 import org.fastily.jwiki.dwrap.PageSection;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
@@ -71,12 +69,16 @@ public class VpVylParser {
         return result;
     }
 
-    private String parseSummary(PageSection summarySection) {
+    String parseSummary(PageSection summarySection) {
         if (summarySection == null) {
             return null;
         }
+        return parseSummary(summarySection.text);
+    }
+
+    String parseSummary(String text) {
         String firstNonHeaderLine =
-                Arrays.stream(summarySection.text.split("\n")).filter(s -> !s.trim().isBlank()).skip(1).findFirst().orElse(null);
+                Arrays.stream(text.split("\n")).filter(s -> !s.trim().isBlank()).skip(1).findFirst().orElse(null);
         if (firstNonHeaderLine == null) {
             return null;
         }
@@ -111,26 +113,24 @@ public class VpVylParser {
     }
 
     private Optional<String> getSignatureUser(String line) {
-        String userText1 = "[[Користувач:";
-        String userText2 = "[[User:";
-        String userText3 = "[[Обговорення користувача:";
-        int userIndex = line.lastIndexOf(userText1);
-        if (userIndex == -1) {
-            userIndex = line.lastIndexOf(userText2);
+        final List<String> endings = Stream.of("[[Користувач:", "[[Користувачка:", "[[User:", "[[User talk:",
+                "[[Обговорення користувача:", "[[Обговорення користувачки:", "[[Спеціальна:Внесок/").collect(toList());
+        Map<Integer, String> positionToText = new HashMap<>();
+        for (String ending : endings) {
+            positionToText.put(line.lastIndexOf(ending), ending);
         }
-        if (userIndex == -1) {
-            userIndex = line.lastIndexOf(userText3);
-        }
+        final int userIndex = positionToText.keySet().stream().max(Integer::compareTo).get();
+        final String userText = positionToText.get(userIndex);
         if (userIndex == -1) {
             log.warn("Failed to find signature in line {}", line);
             return Optional.empty();
         }
-        int endIndex = line.indexOf("|", userIndex + userText1.length());
+        int endIndex = line.indexOf("|", userIndex + userText.length());
         if (endIndex == -1) {
             log.warn("Failed to find signature in line {}", line);
             return Optional.empty();
         }
-        return Optional.of(line.substring(userIndex + userText1.length(), endIndex));
+        return Optional.of(line.substring(userIndex + userText.length(), endIndex));
     }
 
 }
