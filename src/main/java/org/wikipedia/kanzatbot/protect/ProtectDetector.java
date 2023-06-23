@@ -41,7 +41,7 @@ public class ProtectDetector {
             }
         }
 
-        LocalDateTime previousDay = LocalDateTime.now().minus(2, ChronoUnit.DAYS);
+        LocalDateTime previousDay = LocalDateTime.now().minus(1, ChronoUnit.DAYS);
         StringBuilder report = new StringBuilder();
         boolean reportIsEmpty = true;
         report.append("== ").append(dateFormatter.format(previousDay)).append(" ==\n");
