@@ -23,6 +23,35 @@ import java.util.stream.Stream;
 @Slf4j
 public class JWikiUtils {
 
+    public static List<EditEntry> getEdits(final Wiki wiki, final String tag, final LocalDateTime start, final LocalDateTime end, String title) {
+        final WQuery.QTemplate RECENTCHANGES = new WQuery.QTemplate(
+                FL.pMap("list", "recentchanges", "rcprop", "title|timestamp|user|redirect|comment|ids|userid", "rctype",
+                        "edit", "rcnamespace", "0"), "rclimit",
+                "recentchanges");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.systemDefault());
+        WQuery wq = new WQuery(wiki, RECENTCHANGES);
+        if (start != null) {
+            wq.set("rcend", formatter.format(start));
+        }
+        if (end != null) {
+            wq.set("rcstart", formatter.format(end));
+        }
+        if (title != null) {
+            wq.set("rctitle", title);
+        }
+        if (tag != null) {
+            wq.set("rctag", tag);
+        }
+
+        ArrayList<EditEntry> l = new ArrayList<>();
+        while (wq.has()) {
+            Stream<EditEntry> recentchanges = wq.next().listComp("recentchanges").stream().map(jo -> GSONP.gson.fromJson(jo, EditEntry.class));
+            l.addAll(FL.toAL(recentchanges));
+        }
+
+        return l;
+    }
+
     public static List<String> getUsers(final Wiki wiki, final List<String> groups, final boolean onlyActive) {
         final String augroup = groups == null || groups.isEmpty() ? null : String.join("|", groups);
         final WQuery.QTemplate ALLUSERS = new WQuery.QTemplate(
@@ -42,8 +71,7 @@ public class JWikiUtils {
      * Has additional start and end dates.
      */
     public static List<Contrib> getContribs(Wiki wiki, String user, int cap, boolean olderFirst, boolean createdOnly,
-                                     final LocalDateTime start, final LocalDateTime end, NS... ns)
-    {
+                                            final LocalDateTime start, final LocalDateTime end, NS... ns) {
         log.info("Fetching contribs of {}", user);
 
         WQuery wq = new WQuery(wiki, cap, WQuery.USERCONTRIBS).set("ucuser", user);
