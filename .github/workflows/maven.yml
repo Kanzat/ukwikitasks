@@ -20,27 +20,22 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v3
-
-      - uses: actions/checkout@v3
         with:
-          repository: Kanzat/jwiki
-          path: 'jwiki'
+          submodules: true
 
-      - name: Set up JDK 11
+      # Gradle 9 (used by jwiki) needs JDK 17+; the bot itself is compiled with --release 11
+      - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
-          java-version: '11'
-          distribution: 'adopt'
+          java-version: '21'
+          distribution: 'temurin'
           cache: maven
 
-      - name: Build JWiki with Gradle
-        uses: gradle/gradle-build-action@v2.2.1
-        with:
-          build-root-directory: jwiki
-          arguments: publishToMavenLocal
+      - name: Set up Gradle (also validates the jwiki wrapper)
+        uses: gradle/actions/setup-gradle@v6
 
-      - name: Build with Maven
-        run: mvn -B package --file pom.xml
+      - name: Build jwiki and the bot
+        run: ./build.sh
 
       - uses: actions/upload-artifact@v3
         with:
