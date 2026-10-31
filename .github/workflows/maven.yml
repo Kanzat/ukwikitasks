@@ -61,20 +61,36 @@ jobs:
       - name: Set TF_TOOL_DIR env variable
         run: echo "TF_TOOL_DIR=/data/project/${TF_TOOL}" >> $GITHUB_ENV
 
-      - name: Copy artifacts to ToolForge over SSH and redeploy
-        # Pinned to a commit: this third-party action receives the Toolforge SSH key
-        uses: cross-the-world/ssh-scp-ssh-pipelines@78e864b4890087a58248ff39320406971ca88b89 # v1.1.4
-        with:
-          host: login.toolforge.org
-          user: ${{env.TF_USER}}
-          key: ${{secrets.DC_PASS}}
-          connect_timeout: 10s
-          # Create a credentials file with 600 mode
-          # Create a startcmd.sh file
-          first_ssh: |
-            become ${{env.TF_TOOL}} bash -c "install -m 755 <(echo '/usr/bin/java -jar ${{env.TF_TOOL_DIR}}/${{env.ARTIFACT_FILE}} --org.kanzatbot.credentials.location="${{env.TF_TOOL_DIR}}/credentials.properties"') ${{env.TF_TOOL_DIR}}/startcmd.sh"
-          scp: |
-            './${{env.ARTIFACT_FILE}}' => ${{env.TF_TOOL_DIR}}/
-            './.github/workflows/deploy.sh' => ${{env.TF_TOOL_DIR}}/
-          last_ssh: |
-            become ${{env.TF_TOOL}} sh ${{env.TF_TOOL_DIR}}/deploy.sh
+      # After this step `ssh toolforge` / `scp ... toolforge:` work without extra options
+      - name: Set up SSH access to Toolforge
+        env:
+          SSH_KEY: ${{secrets.DC_PASS}}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/toolforge
+          chmod 600 ~/.ssh/toolforge
+          # Host key from `ssh-keyscan -t ed25519 login.toolforge.org`; check that `ssh-keygen -l -f -` of it matches the
+          # ED25519 fingerprint at https://wikitech.wikimedia.org/wiki/Help:SSH_Fingerprints/login.toolforge.org
+          echo 'login.toolforge.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHHCaBsit1GY3TeucMi3gDEIpQ8uNhokVa0dr/tM6PZa' > ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<EOF
+          Host toolforge
+            HostName login.toolforge.org
+            User ${TF_USER}
+            IdentityFile ~/.ssh/toolforge
+            BatchMode yes
+            ConnectTimeout 10
+          EOF
+
+      - name: Create startcmd.sh
+        run: |
+          FIRST_SSH=$(cat <<'EOF'
+          become ${{env.TF_TOOL}} bash -c "install -m 755 <(echo '/usr/bin/java -jar ${{env.TF_TOOL_DIR}}/${{env.ARTIFACT_FILE}} --org.kanzatbot.credentials.location="${{env.TF_TOOL_DIR}}/credentials.properties"') ${{env.TF_TOOL_DIR}}/startcmd.sh"
+          EOF
+          )
+          ssh toolforge "$FIRST_SSH"
+
+      - name: Copy the jar and deploy.sh
+        run: scp "./${ARTIFACT_FILE}" ./.github/workflows/deploy.sh "toolforge:${TF_TOOL_DIR}/"
+
+      - name: Recreate the Toolforge job
+        run: ssh toolforge "become ${TF_TOOL} sh ${TF_TOOL_DIR}/deploy.sh"
