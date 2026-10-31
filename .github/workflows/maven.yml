@@ -89,8 +89,8 @@ jobs:
           )
           ssh toolforge "$FIRST_SSH"
 
-      - name: Copy the jar and deploy.sh
-        run: scp "./${ARTIFACT_FILE}" ./.github/workflows/deploy.sh "toolforge:${TF_TOOL_DIR}/"
+      - name: Copy the jar and the job definitions
+        run: scp "./${ARTIFACT_FILE}" ./toolforge/jobs.yaml "toolforge:${TF_TOOL_DIR}/"
 
-      - name: Recreate the Toolforge job
-        run: ssh toolforge "become ${TF_TOOL} sh ${TF_TOOL_DIR}/deploy.sh"
+      - name: Load the Toolforge jobs
+        run: ssh toolforge "become ${TF_TOOL} toolforge jobs load ${TF_TOOL_DIR}/jobs.yaml"

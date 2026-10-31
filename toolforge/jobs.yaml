@@ -1,0 +1,8 @@
+# Jobs of the Toolforge tool. The deploy workflow loads this file with `toolforge jobs load`, which recreates only the
+# jobs whose definition changed. See https://wikitech.wikimedia.org/wiki/Help:Toolforge/Jobs_framework
+# Commands run in the tool's home directory.
+- name: mycronjob
+  command: ./startcmd.sh
+  image: jdk17
+  schedule: "0 4 * * *"
+  emails: onfailure
