@@ -2,7 +2,7 @@
 # jobs whose definition changed. See https://wikitech.wikimedia.org/wiki/Help:Toolforge/Jobs_framework
 # Commands run in the tool's home directory.
 - name: mycronjob
-  command: ./startcmd.sh
+  command: java -jar ukwikitasks.jar
   image: jdk21
   schedule: "0 4 * * *"
   emails: onfailure
