@@ -14,9 +14,20 @@ import static java.util.stream.Collectors.toList;
 @Component
 public class VpVylParser {
 
+    /**
+     * Pauses between attempts to load a page that exists but could not be loaded.
+     */
+    static final long[] RETRY_DELAYS_MS = {5_000, 15_000, 30_000};
+
+    interface Sleeper {
+        void sleep(long millis) throws InterruptedException;
+    }
+
+    Sleeper sleeper = Thread::sleep;
+
     public List<PageDeletion> getDeletions(final Wiki wiki, final String title) {
         log.info("Getting deleted articles for {}", title);
-        Optional<JWikiTree> jWikiTree = MarkdownParser.parsePage(wiki, title);
+        Optional<JWikiTree> jWikiTree = parsePageWithRetry(wiki, title);
         if (jWikiTree.isEmpty()) {
             log.info("Page {} does not exist", title);
             return new ArrayList<>();
@@ -26,6 +37,41 @@ public class VpVylParser {
             log.debug("Found {} with status {}", pageDeletion.title, pageDeletion.status);
         }
         return pageDeletions;
+    }
+
+    /**
+     * jwiki's splitPageByHeader swallows any API or network error and returns an empty list, which is
+     * indistinguishable from a missing page. Treating a failed load as "page does not exist" silently dropped most
+     * days from the DeletionStats report on 2026-10-28. So an empty result is checked with exists() and the load is
+     * retried; if the page exists but still can't be loaded, this fails loudly instead of returning partial data.
+     */
+    private Optional<JWikiTree> parsePageWithRetry(final Wiki wiki, final String title) {
+        for (int attempt = 0; ; attempt++) {
+            Optional<JWikiTree> tree = MarkdownParser.parsePage(wiki, title);
+            if (tree.isPresent()) {
+                return tree;
+            }
+            Boolean exists = null;
+            try {
+                exists = wiki.exists(title);
+            } catch (Exception e) {
+                // jwiki's exists() throws NullPointerException when the request fails
+                log.warn("Failed to check existence of {}", title, e);
+            }
+            if (Boolean.FALSE.equals(exists)) {
+                return Optional.empty();
+            }
+            if (attempt >= RETRY_DELAYS_MS.length) {
+                throw new IllegalStateException("Failed to load page " + title + " after " + (attempt + 1) + " attempts");
+            }
+            log.warn("Page {} could not be loaded (exists={}), retrying in {} ms", title, exists, RETRY_DELAYS_MS[attempt]);
+            try {
+                sleeper.sleep(RETRY_DELAYS_MS[attempt]);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException("Interrupted while loading page " + title, e);
+            }
+        }
     }
 
     private List<PageDeletion> convertToPageDeletion(String location, JWikiTree tree) {
