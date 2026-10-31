@@ -59,7 +59,8 @@ jobs:
         run: echo "TF_TOOL_DIR=/data/project/${TF_TOOL}" >> $GITHUB_ENV
 
       - name: Copy artifacts to ToolForge over SSH and redeploy
-        uses: cross-the-world/ssh-scp-ssh-pipelines@latest
+        # Pinned to a commit: this third-party action receives the Toolforge SSH key
+        uses: cross-the-world/ssh-scp-ssh-pipelines@78e864b4890087a58248ff39320406971ca88b89 # v1.1.4
         with:
           host: login.toolforge.org
           user: ${{env.TF_USER}}
