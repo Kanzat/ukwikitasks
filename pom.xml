@@ -20,6 +20,9 @@
         <maven.compiler.target>11</maven.compiler.target>
         <maven.compiler.source>11</maven.compiler.source>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Override Spring Boot's managed versions; they apply to transitive deps (e.g. okhttp via jwiki) too -->
+        <okhttp3.version>4.8.1</okhttp3.version>
+        <gson.version>2.8.9</gson.version>
     </properties>
 
     <dependencies>
@@ -35,12 +38,10 @@
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.8.9</version>
         </dependency>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
-            <version>4.8.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
