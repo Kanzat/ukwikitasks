@@ -17,8 +17,7 @@
     <name>wikipedia-need-attention-pages4</name>
 
     <properties>
-        <maven.compiler.target>11</maven.compiler.target>
-        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.release>11</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- Override Spring Boot's managed versions; they apply to transitive deps (e.g. okhttp via jwiki) too -->
         <okhttp3.version>4.8.1</okhttp3.version>
