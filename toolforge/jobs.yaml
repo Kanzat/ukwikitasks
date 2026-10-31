@@ -3,6 +3,6 @@
 # Commands run in the tool's home directory.
 - name: mycronjob
   command: ./startcmd.sh
-  image: jdk17
+  image: jdk21
   schedule: "0 4 * * *"
   emails: onfailure
