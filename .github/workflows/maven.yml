@@ -81,16 +81,25 @@ jobs:
             ConnectTimeout 10
           EOF
 
-      - name: Create startcmd.sh
+      # Copies the bot's login from the repository variable BOT_USER and secret BOT_PASSWORD to the tool's envvars;
+      # `create` also updates an existing one.
+      # The values go through stdin: command arguments on the shared bastion are visible to every user in `ps`, and
+      # the command prints the value back, hence > /dev/null.
+      - name: Set the bot credentials on Toolforge
+        env:
+          BOT_USER: ${{vars.BOT_USER}}
+          BOT_PASSWORD: ${{secrets.BOT_PASSWORD}}
         run: |
-          FIRST_SSH=$(cat <<'EOF'
-          become ${{env.TF_TOOL}} bash -c "install -m 755 <(echo '/usr/bin/java -jar ${{env.TF_TOOL_DIR}}/${{env.ARTIFACT_FILE}} --org.kanzatbot.credentials.location="${{env.TF_TOOL_DIR}}/credentials.properties"') ${{env.TF_TOOL_DIR}}/startcmd.sh"
-          EOF
-          )
-          ssh toolforge "$FIRST_SSH"
+          # A missing variable or secret is empty here and would overwrite the working value on Toolforge
+          if [ -z "$BOT_USER" ] || [ -z "$BOT_PASSWORD" ]; then
+            echo "::error::The BOT_USER repository variable and the BOT_PASSWORD repository secret must be set"
+            exit 1
+          fi
+          printf '%s' "$BOT_USER" | ssh toolforge "become ${TF_TOOL} toolforge envvars create BOT_USER" > /dev/null
+          printf '%s' "$BOT_PASSWORD" | ssh toolforge "become ${TF_TOOL} toolforge envvars create BOT_PASSWORD" > /dev/null
 
-      - name: Copy the jar and deploy.sh
-        run: scp "./${ARTIFACT_FILE}" ./.github/workflows/deploy.sh "toolforge:${TF_TOOL_DIR}/"
+      - name: Copy the jar and the job definitions
+        run: scp "./${ARTIFACT_FILE}" ./toolforge/jobs.yaml "toolforge:${TF_TOOL_DIR}/"
 
-      - name: Recreate the Toolforge job
-        run: ssh toolforge "become ${TF_TOOL} sh ${TF_TOOL_DIR}/deploy.sh"
+      - name: Load the Toolforge jobs
+        run: ssh toolforge "become ${TF_TOOL} toolforge jobs load ${TF_TOOL_DIR}/jobs.yaml"

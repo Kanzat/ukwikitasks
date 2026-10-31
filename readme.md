@@ -1,7 +1,11 @@
-You need to manually set up file with credentials for you tool. 
+## Toolforge
 
-    become toolname
-    install -m 600 <(echo -e 'user=BotUsername\npassword=BotPassword') /data/project/toolname/credentials.properties
+The bot runs daily as a job of the Toolforge tool `kanzattool1`. Every push to `main` deploys it: the workflow copies
+the jar and [toolforge/jobs.yaml](toolforge/jobs.yaml) to the tool and loads the job definitions.
+
+The bot logs in as the `BOT_USER` repository variable (`KanzatBot`) with the `BOT_PASSWORD` repository secret. The
+deploy copies both to the tool's envvars, so after changing them rerun the workflow. To run the bot locally, set them
+as environment variables.
 
 ## Build
 

@@ -1,34 +1,17 @@
 package org.wikipedia.kanzatbot.auth;
 
-import lombok.extern.slf4j.Slf4j;
 import org.fastily.jwiki.core.Wiki;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Properties;
-
-@Slf4j
 @Component
 public class Auth {
 
-    @Value("${org.kanzatbot.credentials.location}")
-    private String credentialsFile;
+    // On Toolforge these come from `toolforge envvars`, locally from environment variables or --BOT_USER=... arguments
+    @Value("${BOT_USER}")
     private String user;
+    @Value("${BOT_PASSWORD}")
     private String password;
-
-    @PostConstruct
-    public void initialize() throws IOException {
-        Properties prop = new Properties();
-        log.debug("Reading credentials from {}", credentialsFile);
-        try (FileInputStream stream = new FileInputStream(credentialsFile)) {
-            prop.load(stream);
-            user = prop.getProperty("user");
-            password = prop.getProperty("password");
-        }
-    }
 
     public void auth(Wiki wiki) {
         final boolean success = wiki.login(user, password);
