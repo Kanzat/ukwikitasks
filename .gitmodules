@@ -1,0 +1,3 @@
+[submodule "jwiki"]
+	path = jwiki
+	url = https://github.com/Kanzat/jwiki.git
