@@ -20,9 +20,22 @@ public class VpVylStats {
     @Autowired
     VpVylParser vpVylParser;
 
+    static final String REPORT_TITLE = "User:KanzatBot/Reports/DeletionStats";
+
     public void generateReport(Wiki wiki) {
+        generateReport(wiki, LocalDate.now());
+    }
+
+    /**
+     * Publishes the report for the 365 days before {@code end}. The report is built in full first, so if loading any
+     * day throws, nothing is published and the previous report stays on the wiki.
+     */
+    void generateReport(Wiki wiki, LocalDate end) {
+        wiki.edit(REPORT_TITLE, buildReport(wiki, end), "Оновлення статистики про ВП:ВИЛ");
+    }
+
+    String buildReport(Wiki wiki, LocalDate end) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMMM yyyy", new Locale("uk", "UA"));
-        LocalDate end = LocalDate.now();
         LocalDate start = end.minus(365, ChronoUnit.DAYS);
 
         List<PageDeletion> allDeletions = new ArrayList<>();
@@ -40,8 +53,7 @@ public class VpVylStats {
         report.append("Звіт про діяльність номінаторів та адміністраторів на [[ВП:ВИЛ]] за останні 365 днів.\n");
         displayNominators(allDeletions, report);
         displaySummarizers(allDeletions, report);
-
-        wiki.edit("User:KanzatBot/Reports/DeletionStats", report.toString(), "Оновлення статистики про ВП:ВИЛ");
+        return report.toString();
     }
 
     private void displayNominators(List<PageDeletion> allDeletions, StringBuilder report) {
