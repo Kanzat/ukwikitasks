@@ -10,6 +10,7 @@ import org.wikipedia.kanzatbot.auth.Auth;
 import org.wikipedia.kanzatbot.copyvio.CopyvioDetector;
 import org.wikipedia.kanzatbot.copyviopages.CopyvioPages;
 import org.wikipedia.kanzatbot.deletedrestored.DeletedPagesRestored;
+import org.wikipedia.kanzatbot.photorequests.PhotoRequests;
 import org.wikipedia.kanzatbot.potd.CreateCandidateImagesPage;
 import org.wikipedia.kanzatbot.potd.ImportImages;
 import org.wikipedia.kanzatbot.protect.ProtectDetector;
@@ -46,6 +47,8 @@ public class JobsRunner implements CommandLineRunner {
     VpVylStats vpVylStats;
     @Autowired
     ProtectDetector protectDetector;
+    @Autowired
+    PhotoRequests photoRequests;
 
     @Override
     public void run(String... args) {
@@ -64,6 +67,7 @@ public class JobsRunner implements CommandLineRunner {
         jobs.add(() -> vpVylAdminHelper.generateReport(ukWiki));
         jobs.add(() -> vpVylStats.generateReport(ukWiki));
         jobs.add(() -> protectDetector.detect(ukWiki));
+        jobs.add(() -> photoRequests.update(ukWiki));
 
         boolean hasFailure = false;
         for (ThrowableRunnable job : jobs) {
