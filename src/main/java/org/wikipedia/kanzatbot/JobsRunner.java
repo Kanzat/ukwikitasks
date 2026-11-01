@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.wikipedia.kanzatbot.activebots.ActiveBots;
 import org.wikipedia.kanzatbot.auth.Auth;
 import org.wikipedia.kanzatbot.copyvio.CopyvioDetector;
+import org.wikipedia.kanzatbot.copyviopages.CopyvioPages;
 import org.wikipedia.kanzatbot.deletedrestored.DeletedPagesRestored;
 import org.wikipedia.kanzatbot.potd.CreateCandidateImagesPage;
 import org.wikipedia.kanzatbot.potd.ImportImages;
@@ -34,6 +35,8 @@ public class JobsRunner implements CommandLineRunner {
     @Autowired
     CopyvioDetector copyvioDetector;
     @Autowired
+    CopyvioPages copyvioPages;
+    @Autowired
     DeletedPagesRestored deletedPagesRestored;
     @Autowired
     ActiveBots activeBots;
@@ -55,6 +58,7 @@ public class JobsRunner implements CommandLineRunner {
         jobs.add(() -> importImages.startImport(ukWiki, commonsWiki));
         // jobs.add(() -> createCandidatePatrolsPage.create(ukWiki));
         jobs.add(() -> copyvioDetector.runInNewPages(ukWiki));
+        jobs.add(() -> copyvioPages.update(ukWiki, "Вікіпедія:Статті з можливим порушенням авторських прав"));
         jobs.add(() -> deletedPagesRestored.find(ukWiki));
         jobs.add(() -> activeBots.generateReport(ukWiki));
         jobs.add(() -> vpVylAdminHelper.generateReport(ukWiki));
